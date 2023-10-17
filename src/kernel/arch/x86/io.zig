@@ -40,6 +40,10 @@ pub fn out(port: u16, data: anytype) void {
     }
 }
 
+pub fn wait() void {
+    out(0x80, @as(u8, 0));
+}
+
 pub fn lgdt(gdt: *const Gdt.Ptr) void {
     asm volatile ("lgdt (%%eax)"
         :

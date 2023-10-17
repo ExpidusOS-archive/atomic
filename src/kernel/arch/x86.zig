@@ -4,3 +4,4 @@ pub const cpu = @import("x86/cpu.zig");
 pub const io = @import("x86/io.zig");
 pub const isr = @import("x86/isr.zig");
 pub const irq = @import("x86/irq.zig");
+pub const pic = @import("x86/pic.zig");

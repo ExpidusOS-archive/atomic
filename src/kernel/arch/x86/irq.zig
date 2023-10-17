@@ -1,6 +1,7 @@
 const std = @import("std");
 const Idt = @import("idt.zig");
 const cpu = @import("cpu.zig");
+const pic = @import("pic.zig");
 const interrupts = @import("interrupts.zig");
 
 pub const OFFSET = 32;
@@ -13,12 +14,15 @@ export fn irqHandler(state: *cpu.State) usize {
         std.debug.panic("Invaid IRQ {}: outside of range", .{state.int_num - OFFSET});
     }
 
-    const irq = state.int_num - OFFSET;
+    const irq: u8 = @truncate(state.int_num - OFFSET);
     var ret_esp = @intFromPtr(state);
 
     if (isValid(irq)) {
         if (handlers[irq]) |handler| {
-            ret_esp = handler(state);
+            if (!pic.isSpuriousIrq(irq)) {
+                ret_esp = handler(state);
+                pic.sendEndOfInterrupt(irq);
+            }
         } else {
             std.debug.panic("Invalid IRQ {}: the interrupt was triggered but not handled.", .{irq});
         }
