@@ -11,6 +11,7 @@ const target = std.zig.CrossTarget{
 };
 
 pub const i386_pc_multiboot = Device{
+    .platform = "pc",
     .target = target,
     .linker_script = .{
         .path = path() ++ "/i386-pc/multiboot.ld",

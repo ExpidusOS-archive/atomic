@@ -32,7 +32,7 @@
         devShells.default = pkgs.mkShell {
           name = "expidus-atom";
 
-          packages = with pkgs; [ zig ];
+          packages = with pkgs; [ zig lldb_16 gdb ];
         };
       });
 }

@@ -5,7 +5,7 @@ pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});
     const optimize = b.standardOptimizeOption(.{});
 
-    const benv = try atomsdk.BuildEnv.init(b, .{
+    const benv = atomsdk.BuildEnv.init(b, .{
         .target = target,
         .optimize = optimize,
     });
