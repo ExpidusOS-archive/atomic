@@ -115,11 +115,15 @@ pub const USER_SEGMENT_DATA = AccessBits{
     .present = 1,
 };
 
-pub const NULL_OFFSET: u16 = 0x00;
-pub const KERNEL_CODE_OFFSET: u16 = 0x08;
-pub const KERNEL_DATA_OFFSET: u16 = 0x10;
-pub const USER_CODE_OFFSET: u16 = 0x18;
-pub const USER_DATA_OFFSET: u16 = 0x20;
+pub const Ptr = packed struct {
+    limit: u16,
+    base: u32,
+};
+
+pub const Offset = struct {
+    code: u16 = 0,
+    data: u16 = 0,
+};
 
 pub var entries = [_]Entry{
     Entry.init(0, 0, NULL_SEGMENT, NULL_FLAGS),
@@ -129,18 +133,12 @@ pub var entries = [_]Entry{
     Entry.init(0, 0xFFFFF, USER_SEGMENT_DATA, PAGING_32_BIT),
 };
 
-pub var ptr = Gdt{
+pub var ptr = Ptr{
     .limit = getTableSize(&entries),
     .base = undefined,
 };
 
-limit: u16,
-base: u32,
-
-pub fn init() void {
-    ptr.base = @intFromPtr(&entries[0]);
-    io.lgdt(&ptr);
-}
+pub fn init() void {}
 
 pub fn getTableSize(e: []Entry) u16 {
     return @sizeOf(Entry) * e.len - 1;

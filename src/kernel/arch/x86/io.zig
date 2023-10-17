@@ -39,7 +39,7 @@ pub fn out(port: u16, data: anytype) void {
     }
 }
 
-pub fn lgdt(gdt: *const Gdt) void {
+pub fn lgdt(gdt: *const Gdt.Ptr) void {
     asm volatile ("lgdt (%%eax)"
         :
         : [gdt] "{eax}" (gdt),
