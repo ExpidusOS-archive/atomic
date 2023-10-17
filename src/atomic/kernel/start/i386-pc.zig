@@ -1,4 +1,5 @@
 const arch = @import("../arch.zig");
+const mem = @import("../mem.zig");
 const std = @import("std");
 
 const console = arch.serial.Console{
@@ -6,7 +7,8 @@ const console = arch.serial.Console{
     .baud = arch.serial.DEFAULT_BAUDRATE,
 };
 
-pub fn bootstrapMain() callconv(.C) void {
+pub fn bootstrapMain(memprofile: mem.Profile) void {
+    _ = memprofile;
     arch.Gdt.init();
 
     console.reset() catch unreachable;
@@ -15,8 +17,4 @@ pub fn bootstrapMain() callconv(.C) void {
     arch.pic.init();
     arch.isr.init();
     arch.irq.init();
-}
-
-comptime {
-    @export(bootstrapMain, .{ .name = "bootstrap_main" });
 }

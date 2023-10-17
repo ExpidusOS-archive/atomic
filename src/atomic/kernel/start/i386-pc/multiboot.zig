@@ -1,4 +1,6 @@
+const std = @import("std");
 const arch = @import("../../arch.zig");
+const mem = @import("../../mem.zig");
 
 const MultiBootHeader = extern struct {
     magic: i32 = MAGIC,
@@ -22,7 +24,7 @@ const MultiBootHeader = extern struct {
 const MultiBootInfo = packed struct {
     flags: u32,
     mem_lower: u32,
-    mem_uppwer: u32,
+    mem_upper: u32,
     boot_device: u32,
     cmdline: u32,
     mods_count: u32,
@@ -50,12 +52,32 @@ const MultiBootInfo = packed struct {
     apm_table: u32,
 };
 
+const MultiBootMemoryMap = packed struct {
+    size: u32,
+    addr: u64,
+    len: u64,
+    type: u32,
+};
+
+const MultiBootModuleList = packed struct {
+    mod_start: u32,
+    mod_end: u32,
+    cmdline: u32,
+    pad: u32,
+};
+
 pub var multiboot_info: *const MultiBootInfo = undefined;
 
 export var multiboot_hdr align(4) linksection(".rodata.boot") = MultiBootHeader.init(MultiBootHeader.Flags.ALIGN | MultiBootHeader.Flags.MEMINFO);
 
 export var kernel_stack: [16 * 1024]u8 align(16) linksection(".bss.stack") = undefined;
 extern var KERNEL_ADDR_OFFSET: *u32;
+extern var KERNEL_VADDR_START: *u32;
+extern var KERNEL_VADDR_END: *u32;
+extern var KERNEL_PHYSADDR_START: *u32;
+extern var KERNEL_PHYSADDR_END: *u32;
+extern var KERNEL_STACK_START: *u32;
+extern var KERNEL_STACK_END: *u32;
 
 const KERNEL_PAGE_NUMBER = 0xC0000000 >> 22;
 const KERNEL_NUM_PAGES = 1;
@@ -93,8 +115,6 @@ export var boot_page_directory: [1024]u32 align(4096) linksection(".rodata.boot"
     break :init dir;
 };
 
-extern fn bootstrap_main() void;
-
 export fn _start() align(16) linksection(".text.boot") callconv(.Naked) noreturn {
     asm volatile (
         \\.extern boot_page_directory
@@ -117,7 +137,108 @@ export fn _start() align(16) linksection(".text.boot") callconv(.Naked) noreturn
     while (true) {}
 }
 
+fn initMem() std.mem.Allocator.Error!mem.Profile {
+    const mods_count = multiboot_info.mods_count;
+    mem.ADDR_OFFSET = @intFromPtr(&KERNEL_ADDR_OFFSET);
+
+    const mmap_addr = multiboot_info.mmap_addr;
+    const num_mmap_entries = multiboot_info.mmap_len / @sizeOf(MultiBootMemoryMap);
+
+    const allocator = mem.fixed_buffer_allocator.allocator();
+    var reserved_physical_mem = std.ArrayList(mem.Range).init(allocator);
+    var reserved_virtual_mem = std.ArrayList(mem.Map).init(allocator);
+    const mem_map = @as([*]MultiBootMemoryMap, @ptrFromInt(mmap_addr))[0..num_mmap_entries];
+
+    for (mem_map) |entry| {
+        if (entry.type != 1) {
+            const end: usize = if (entry.addr > std.math.maxInt(usize) - entry.len) std.math.maxInt(usize) else @intCast(entry.addr + entry.len);
+            try reserved_physical_mem.append(.{
+                .start = @intCast(entry.addr),
+                .end = end,
+            });
+        }
+    }
+
+    const kernel_virt = mem.Range{
+        .start = @intFromPtr(&KERNEL_VADDR_START),
+        .end = @intFromPtr(&KERNEL_STACK_START),
+    };
+    const kernel_phy = mem.Range{
+        .start = mem.virtToPhys(kernel_virt.start),
+        .end = mem.virtToPhys(kernel_virt.end),
+    };
+    try reserved_virtual_mem.append(.{
+        .virtual = kernel_virt,
+        .physical = kernel_phy,
+    });
+
+    const mb_region = mem.Range{
+        .start = @intFromPtr(multiboot_info),
+        .end = @intFromPtr(multiboot_info) + @sizeOf(MultiBootInfo),
+    };
+    const mb_physical = mem.Range{
+        .start = mem.virtToPhys(mb_region.start),
+        .end = mem.virtToPhys(mb_region.end),
+    };
+    try reserved_virtual_mem.append(.{
+        .virtual = mb_region,
+        .physical = mb_physical,
+    });
+
+    const boot_modules = @as([*]MultiBootModuleList, @ptrFromInt(mem.physToVirt(multiboot_info.mods_addr)))[0..mods_count];
+    var modules = std.ArrayList(mem.Module).init(allocator);
+    for (boot_modules) |module| {
+        const virtual = mem.Range{
+            .start = mem.physToVirt(module.mod_start),
+            .end = mem.physToVirt(module.mod_end),
+        };
+        const physical = mem.Range{
+            .start = module.mod_start,
+            .end = module.mod_end,
+        };
+        try modules.append(.{
+            .region = virtual,
+            .name = std.mem.span(mem.physToVirt(@as([*:0]u8, @ptrFromInt(module.cmdline)))),
+        });
+        try reserved_virtual_mem.append(.{
+            .physical = physical,
+            .virtual = virtual,
+        });
+    }
+
+    const kernel_stack_virt = mem.Range{
+        .start = @intFromPtr(&KERNEL_STACK_START),
+        .end = @intFromPtr(&KERNEL_STACK_END),
+    };
+    const kernel_stack_phy = mem.Range{
+        .start = mem.virtToPhys(kernel_stack_virt.start),
+        .end = mem.virtToPhys(kernel_stack_virt.end),
+    };
+    try reserved_virtual_mem.append(.{
+        .virtual = kernel_stack_virt,
+        .physical = kernel_stack_phy,
+    });
+
+    return .{
+        .vaddr = .{
+            .end = @as([*]u8, @ptrCast(&KERNEL_VADDR_END)),
+            .start = @as([*]u8, @ptrCast(&KERNEL_VADDR_START)),
+        },
+        .physaddr = .{
+            .end = @as([*]u8, @ptrCast(&KERNEL_PHYSADDR_END)),
+            .start = @as([*]u8, @ptrCast(&KERNEL_PHYSADDR_START)),
+        },
+        .mem_kb = multiboot_info.mem_upper + multiboot_info.mem_lower + 1024,
+        .modules = modules.items,
+        .physical_reserved = reserved_physical_mem.items,
+        .virtual_reserved = reserved_virtual_mem.items,
+        .fixed_allocator = mem.fixed_buffer_allocator,
+    };
+}
+
 export fn _start_higher() noreturn {
+    asm volatile ("invlpg (0)");
+
     asm volatile (
         \\.extern KERNEL_STACK_END
         \\mov $KERNEL_STACK_END, %%esp
@@ -131,10 +252,6 @@ export fn _start_higher() noreturn {
     ) + @intFromPtr(&KERNEL_ADDR_OFFSET);
 
     multiboot_info = @ptrFromInt(mb_info_addr);
-    bootstrap_main();
+    @import("../i386-pc.zig").bootstrapMain(initMem() catch unreachable);
     while (true) {}
-}
-
-comptime {
-    _ = @import("../i386-pc.zig");
 }

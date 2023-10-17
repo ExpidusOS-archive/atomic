@@ -7,6 +7,9 @@ fn path() []const u8 {
 
 const target = std.zig.CrossTarget{
     .cpu_arch = .x86,
+    .cpu_model = .{
+        .explicit = &std.Target.x86.cpu.i686,
+    },
     .os_tag = .freestanding,
 };
 
