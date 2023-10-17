@@ -6,7 +6,7 @@ const console = arch.serial.Console{
     .baud = arch.serial.DEFAULT_BAUDRATE,
 };
 
-pub fn bootstrapMain() callconv(.C) noreturn {
+pub fn bootstrapMain() callconv(.C) void {
     arch.Gdt.init();
 
     console.reset() catch unreachable;
@@ -15,10 +15,6 @@ pub fn bootstrapMain() callconv(.C) noreturn {
     arch.pic.init();
     arch.isr.init();
     arch.irq.init();
-
-    while (true) {
-        _ = console.write("Hello, world!\n") catch unreachable;
-    }
 }
 
 comptime {

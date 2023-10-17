@@ -1,4 +1,4 @@
-pub const kernel = @import("kernel.zig");
+pub const kernel = @import("atomic/kernel.zig");
 pub const options = @import("atomic-options");
 
 comptime {

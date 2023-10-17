@@ -1,3 +1,5 @@
+const arch = @import("../../arch.zig");
+
 const MultiBootHeader = extern struct {
     magic: i32 = MAGIC,
     flags: i32,
@@ -16,6 +18,39 @@ const MultiBootHeader = extern struct {
         pub const MEMINFO = 1 << 1;
     };
 };
+
+const MultiBootInfo = packed struct {
+    flags: u32,
+    mem_lower: u32,
+    mem_uppwer: u32,
+    boot_device: u32,
+    cmdline: u32,
+    mods_count: u32,
+    mods_addr: u32,
+    binary: packed union {
+        aout: packed struct {
+            tabsize: u32,
+            strsize: u32,
+            addr: u32,
+            reserved: u32,
+        },
+        elf: packed struct {
+            num: u32,
+            size: u32,
+            addr: u32,
+            shndx: u32,
+        },
+    },
+    mmap_len: u32,
+    mmap_addr: u32,
+    drives_len: u32,
+    drives_addr: u32,
+    cfgtbl: u32,
+    bootloader_name: u32,
+    apm_table: u32,
+};
+
+pub var multiboot_info: *const MultiBootInfo = undefined;
 
 export var multiboot_hdr align(4) linksection(".rodata.boot") = MultiBootHeader.init(MultiBootHeader.Flags.ALIGN | MultiBootHeader.Flags.MEMINFO);
 
@@ -90,6 +125,12 @@ export fn _start_higher() noreturn {
         \\mov %%esp, %%ebp
     );
 
+    const mb_info_addr = asm (
+        \\mov %%ebx, %[res]
+        : [res] "=r" (-> usize),
+    ) + @intFromPtr(&KERNEL_ADDR_OFFSET);
+
+    multiboot_info = @ptrFromInt(mb_info_addr);
     bootstrap_main();
     while (true) {}
 }

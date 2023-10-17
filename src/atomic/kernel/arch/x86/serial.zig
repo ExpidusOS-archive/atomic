@@ -35,11 +35,6 @@ fn transmitIsEmpty(port: Port) bool {
     return io.in(u8, @intFromEnum(port) + 5) & 0x20 > 0;
 }
 
-fn putc(ch: u8, port: Port) void {
-    while (!transmitIsEmpty(port)) {}
-    io.out(@intFromEnum(port), ch);
-}
-
 pub const Console = struct {
     port: Port,
     baud: u32,
@@ -71,10 +66,15 @@ pub const Console = struct {
         io.out(port_int + 1, @as(u8, 0));
     }
 
+    pub fn writeByte(self: Console, byte: u8) void {
+        while (!transmitIsEmpty(self.port)) {}
+        io.out(@intFromEnum(self.port), byte);
+    }
+
     pub fn write(self: Console, bytes: []const u8) WriteError!usize {
         var i: usize = 0;
         for (bytes) |ch| {
-            putc(ch, self.port);
+            self.writeByte(ch);
             i += 1;
         }
         return i;

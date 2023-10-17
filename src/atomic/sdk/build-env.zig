@@ -69,7 +69,7 @@ pub fn addExecutable(self: *BuildEnv, name: []const u8, entrypoint: std.build.La
 
     exe.addAnonymousModule("atomic", .{
         .source_file = .{
-            .path = self.builder.pathJoin(&.{ sdkPath(), "..", "module.zig" }),
+            .path = self.builder.pathJoin(&.{ sdkPath(), "..", "..", "atomic.zig" }),
         },
         .dependencies = &.{
             .{

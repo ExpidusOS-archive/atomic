@@ -1,5 +1,5 @@
 const std = @import("std");
-const atomsdk = @import("src/sdk.zig");
+const atomsdk = @import("src/atomic/sdk.zig");
 
 pub fn build(b: *std.Build) !void {
     const target = b.standardTargetOptions(.{});

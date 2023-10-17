@@ -48,8 +48,8 @@ export fn commonStub() callconv(.Naked) void {
     );
     asm volatile (
         \\add   $0x1C, %%esp
-        \\.extern kernel.arch.x86.gdt.main_tss_entry
-        \\mov   %%esp, (kernel.arch.x86.gdt.main_tss_entry + 4)
+        \\.extern atomic.kernel.arch.x86.gdt.main_tss_entry
+        \\mov   %%esp, (atomic.kernel.arch.x86.gdt.main_tss_entry + 4)
         \\sub   $0x14, %%esp
         \\iret
     );
