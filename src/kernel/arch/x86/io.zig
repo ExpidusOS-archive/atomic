@@ -1,4 +1,5 @@
 const Gdt = @import("gdt.zig");
+const Idt = @import("idt.zig");
 
 pub fn in(comptime Type: type, port: u16) Type {
     return switch (Type) {
@@ -59,4 +60,19 @@ pub fn lgdt(gdt: *const Gdt.Ptr) void {
         \\ljmp $0x08, $1f
         \\1:
     );
+}
+
+pub fn lidt(idt: *const Idt.Ptr) void {
+    asm volatile ("lidt (%%eax)"
+        :
+        : [idt] "{eax}" (idt),
+    );
+}
+
+pub fn sidt() Idt.Ptr {
+    var idt = Idt.Ptr{ .limit = 0, .base = 0 };
+    asm volatile ("sidt %[tab]"
+        : [tab] "=m" (idt),
+    );
+    return idt;
 }

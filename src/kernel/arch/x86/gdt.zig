@@ -120,10 +120,11 @@ pub const Ptr = packed struct {
     base: u32,
 };
 
-pub const Offset = struct {
-    code: u16 = 0,
-    data: u16 = 0,
-};
+pub const NULL_OFFSET: u16 = 0x00;
+pub const KERNEL_CODE_OFFSET: u16 = 0x08;
+pub const KERNEL_DATA_OFFSET: u16 = 0x10;
+pub const USER_CODE_OFFSET: u16 = 0x18;
+pub const USER_DATA_OFFSET: u16 = 0x20;
 
 pub var entries = [_]Entry{
     Entry.init(0, 0, NULL_SEGMENT, NULL_FLAGS),
@@ -138,7 +139,10 @@ pub var ptr = Ptr{
     .base = undefined,
 };
 
-pub fn init() void {}
+pub fn init() void {
+    ptr.base = @intFromPtr(&entries);
+    io.lgdt(&ptr);
+}
 
 pub fn getTableSize(e: []Entry) u16 {
     return @sizeOf(Entry) * e.len - 1;
