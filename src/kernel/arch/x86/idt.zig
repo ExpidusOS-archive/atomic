@@ -30,7 +30,7 @@ pub const Ptr = packed struct {
     base: u32,
 };
 
-pub const Handler = fn () callconv(.Naked) void;
+pub const Handler = *const fn () callconv(.Naked) void;
 
 pub const TaskGates = struct {
     pub const BASE: u4 = 0x5;
