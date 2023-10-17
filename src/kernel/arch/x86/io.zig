@@ -66,6 +66,13 @@ pub fn lgdt(gdt: *const Gdt.Ptr) void {
     );
 }
 
+pub fn ltr(offset: u16) void {
+    asm volatile ("ltr %%ax"
+        :
+        : [offset] "{ax}" (offset),
+    );
+}
+
 pub fn lidt(idt: *const Idt.Ptr) void {
     asm volatile ("lidt (%%eax)"
         :

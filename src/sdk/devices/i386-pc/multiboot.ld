@@ -1,13 +1,14 @@
 ENTRY(_start)
 
-KERNEL_ADDR_OFFSET = 0x0;
- 
+KERNEL_ADDR_OFFSET = 0xC0000000;
+KERNEL_VADDR_START = 0xC0100000;
+
 SECTIONS {
 	. = 1M;
-  KERNEL_PHYSADDR_START = .;
+	KERNEL_PHYSADDR_START = .;
 
-  .rodata.boot : {
-    KEEP(*(.rodata.boot))
+	.rodata.boot : {
+		KEEP(*(.rodata.boot))
 	}
 
 	.text.boot : {
@@ -39,6 +40,6 @@ SECTIONS {
 		KERNEL_STACK_END = .;
 	}
 
-  KERNEL_VADDR_END = .;
+	KERNEL_VADDR_END = .;
 	KERNEL_PHYSADDR_END = . - KERNEL_ADDR_OFFSET;
 }
