@@ -15,4 +15,5 @@ pub const i386_pc_multiboot = Device{
     .linker_script = .{
         .path = path() ++ "/i386-pc/multiboot.ld",
     },
+    .code_model = .kernel,
 };

@@ -60,6 +60,10 @@ pub fn addExecutable(self: *BuildEnv, name: []const u8, entrypoint: std.build.La
         if (device.linker_script) |linker_script| {
             exe.setLinkerScript(linker_script);
         }
+
+        if (device.code_model) |code_model| {
+            exe.code_model = code_model;
+        }
     } else {
         options.addOption(?[]const u8, "device", null);
     }

@@ -1,7 +1,14 @@
 const MultiBootHeader = extern struct {
-    magic: i32,
+    magic: i32 = MAGIC,
     flags: i32,
     checksum: i32,
+
+    pub fn init(flags: i32) MultiBootHeader {
+        return .{
+            .flags = flags,
+            .checksum = -(MAGIC + flags),
+        };
+    }
 
     pub const MAGIC = 0x1BADB002;
     pub const Flags = struct {
@@ -10,12 +17,7 @@ const MultiBootHeader = extern struct {
     };
 };
 
-const flags = MultiBootHeader.Flags.ALIGN | MultiBootHeader.Flags.MEMINFO;
-export var multiboot_hdr align(4) linksection(".rodata.boot") = MultiBootHeader{
-    .magic = MultiBootHeader.MAGIC,
-    .flags = flags,
-    .checksum = -(MultiBootHeader.MAGIC + flags),
-};
+export var multiboot_hdr align(4) linksection(".rodata.boot") = MultiBootHeader.init(MultiBootHeader.Flags.ALIGN | MultiBootHeader.Flags.MEMINFO);
 
 export var kernel_stack: [16 * 1024]u8 align(16) linksection(".bss.stack") = undefined;
 extern var KERNEL_ADDR_OFFSET: *u32;

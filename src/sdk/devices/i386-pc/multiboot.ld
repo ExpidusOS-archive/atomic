@@ -7,7 +7,7 @@ SECTIONS {
   KERNEL_PHYSADDR_START = .;
 
   .rodata.boot : {
-		*(.rodata.boot)
+    KEEP(*(.rodata.boot))
 	}
 
 	.text.boot : {
