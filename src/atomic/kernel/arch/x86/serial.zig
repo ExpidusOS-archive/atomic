@@ -1,5 +1,6 @@
 const std = @import("std");
 const io = @import("io.zig");
+const panic = @import("../../panic.zig").panic;
 
 pub const Port = enum(u16) {
     COM1 = 0x3F8,
@@ -55,13 +56,13 @@ pub const Console = struct {
         const divisor: u16 = try baudDivisor(self.baud);
         const port_int = @intFromEnum(self.port);
         io.out(port_int + LCR, lcrValue(0, false, false, 1) catch |e| {
-            std.debug.panic("Failed to initialise serial output setup: {}", .{e});
+            panic("Failed to initialise serial output setup: {}", .{e});
         });
 
         io.out(port_int, @as(u8, @truncate(divisor)));
         io.out(port_int + 1, @as(u8, @truncate(divisor >> 8)));
         io.out(port_int + LCR, lcrValue(CHAR_LEN, SINGLE_STOP_BIT, PARITY_BIT, 0) catch |e| {
-            std.debug.panic("Failed to setup serial properties: {}", .{e});
+            panic("Failed to setup serial properties: {}", .{e});
         });
         io.out(port_int + 1, @as(u8, 0));
     }

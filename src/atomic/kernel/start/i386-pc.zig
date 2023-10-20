@@ -7,14 +7,20 @@ const console = arch.serial.Console{
     .baud = arch.serial.DEFAULT_BAUDRATE,
 };
 
-pub fn bootstrapMain(memprofile: mem.Profile) void {
-    _ = memprofile;
-    arch.Gdt.init();
-
+pub fn bootstrapStage1() void {
     console.reset() catch unreachable;
 
+    arch.Gdt.init();
     arch.Idt.init();
     arch.pic.init();
     arch.isr.init();
     arch.irq.init();
+
+    asm volatile ("cli");
+
+    _ = console.writer().print("Hello, world!\n", .{}) catch unreachable;
+}
+
+pub fn bootstrapStage2(memprofile: std.mem.Allocator.Error!mem.Profile) void {
+    _ = console.writer().print("Memory: {any}\n", .{memprofile}) catch unreachable;
 }

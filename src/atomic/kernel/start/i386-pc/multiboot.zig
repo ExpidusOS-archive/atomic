@@ -252,6 +252,7 @@ export fn _start_higher() noreturn {
     ) + @intFromPtr(&KERNEL_ADDR_OFFSET);
 
     multiboot_info = @ptrFromInt(mb_info_addr);
-    @import("../i386-pc.zig").bootstrapMain(initMem() catch unreachable);
+    @import("../i386-pc.zig").bootstrapStage1();
+    @import("../i386-pc.zig").bootstrapStage2(initMem());
     while (true) {}
 }

@@ -3,6 +3,7 @@ const Idt = @import("idt.zig");
 const cpu = @import("cpu.zig");
 const pic = @import("pic.zig");
 const interrupts = @import("interrupts.zig");
+const panic = @import("../../panic.zig").panic;
 
 pub const OFFSET = 32;
 
@@ -11,7 +12,7 @@ var handlers: [16]?Handler = [_]?Handler{null} ** 16;
 
 export fn irqHandler(state: *cpu.State) usize {
     if (state.int_num < OFFSET) {
-        std.debug.panic("Invaid IRQ {}: outside of range", .{state.int_num - OFFSET});
+        panic("Invaid IRQ {}: outside of range", .{state.int_num - OFFSET});
     }
 
     const irq: u8 = @truncate(state.int_num - OFFSET);
@@ -24,10 +25,10 @@ export fn irqHandler(state: *cpu.State) usize {
                 pic.sendEndOfInterrupt(irq);
             }
         } else {
-            std.debug.panic("Invalid IRQ {}: the interrupt was triggered but not handled.", .{irq});
+            panic("Invalid IRQ {}: the interrupt was triggered but not handled.", .{irq});
         }
     } else {
-        std.debug.panic("Invalid IRQ {}: entry is not within range", .{irq});
+        panic("Invalid IRQ {}: entry is not within range", .{irq});
     }
     return ret_esp;
 }
