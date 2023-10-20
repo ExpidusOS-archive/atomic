@@ -1,6 +1,7 @@
 const std = @import("std");
 const arch = @import("../../arch.zig");
 const mem = @import("../../mem.zig");
+const panic = @import("../../panic.zig").panic;
 
 const MultiBootHeader = extern struct {
     magic: i32 = MAGIC,
@@ -150,11 +151,11 @@ fn initMem() std.mem.Allocator.Error!mem.Profile {
     const mem_map = @as([*]MultiBootMemoryMap, @ptrFromInt(mmap_addr))[0..num_mmap_entries];
 
     for (mem_map) |entry| {
-        if (entry.type != 1) {
+        if (entry.type != 1 and entry.len < std.math.maxInt(usize)) {
             const end: usize = if (entry.addr > std.math.maxInt(usize) - entry.len) std.math.maxInt(usize) else @intCast(entry.addr + entry.len);
             try reserved_physical_mem.append(.{
-                .start = @intCast(entry.addr),
-                .end = end,
+              .start = @intCast(entry.addr),
+              .end = end,
             });
         }
     }
@@ -219,7 +220,8 @@ fn initMem() std.mem.Allocator.Error!mem.Profile {
         .physical = kernel_stack_phy,
     });
 
-    return .{
+    // FIXME: why is it reporting 1016kB?
+    return mem.Profile{
         .vaddr = .{
             .end = @as([*]u8, @ptrCast(&KERNEL_VADDR_END)),
             .start = @as([*]u8, @ptrCast(&KERNEL_VADDR_START)),
@@ -253,6 +255,6 @@ export fn _start_higher() noreturn {
 
     multiboot_info = @ptrFromInt(mb_info_addr);
     @import("../i386-pc.zig").bootstrapStage1();
-    @import("../i386-pc.zig").bootstrapStage2(initMem());
+    @import("../i386-pc.zig").bootstrapStage2(initMem() catch |e| panic("Failed to initialize memory info: {}", .{e}));
     while (true) {}
 }

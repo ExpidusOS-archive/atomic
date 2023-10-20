@@ -38,7 +38,7 @@ fn transmitIsEmpty(port: Port) bool {
 
 pub const Console = struct {
     port: Port,
-    baud: u32,
+    baud: u32 = DEFAULT_BAUDRATE,
 
     pub const WriteError = error{};
     pub const Writer = std.io.Writer(Console, WriteError, write);

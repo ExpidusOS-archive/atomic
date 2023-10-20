@@ -21,6 +21,6 @@ pub fn bootstrapStage1() void {
     _ = console.writer().print("Hello, world!\n", .{}) catch unreachable;
 }
 
-pub fn bootstrapStage2(memprofile: std.mem.Allocator.Error!mem.Profile) void {
-    _ = console.writer().print("Memory: {any}\n", .{memprofile}) catch unreachable;
+pub fn bootstrapStage2(memprofile: mem.Profile) void {
+    _ = console.writer().print("Memory: {} kB\n", .{memprofile.mem_kb}) catch unreachable;
 }
