@@ -154,8 +154,8 @@ fn initMem() std.mem.Allocator.Error!mem.Profile {
         if (entry.type != 1 and entry.len < std.math.maxInt(usize)) {
             const end: usize = if (entry.addr > std.math.maxInt(usize) - entry.len) std.math.maxInt(usize) else @intCast(entry.addr + entry.len);
             try reserved_physical_mem.append(.{
-              .start = @intCast(entry.addr),
-              .end = end,
+                .start = @intCast(entry.addr),
+                .end = end,
             });
         }
     }
@@ -255,6 +255,6 @@ export fn _start_higher() noreturn {
 
     multiboot_info = @ptrFromInt(mb_info_addr);
     @import("../i386-pc.zig").bootstrapStage1();
-    @import("../i386-pc.zig").bootstrapStage2(initMem() catch |e| panic("Failed to initialize memory info: {}", .{e}));
+    @import("../i386-pc.zig").bootstrapStage2(&(initMem() catch |e| panic("Failed to initialize memory info: {}", .{e})));
     while (true) {}
 }

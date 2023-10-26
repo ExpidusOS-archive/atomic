@@ -21,6 +21,6 @@ pub fn bootstrapStage1() void {
     _ = console.writer().print("Hello, world!\n", .{}) catch unreachable;
 }
 
-pub fn bootstrapStage2(memprofile: mem.Profile) void {
+pub fn bootstrapStage2(memprofile: *const mem.Profile) void {
     _ = console.writer().print("Memory: {} kB\n", .{memprofile.mem_kb}) catch unreachable;
 }
