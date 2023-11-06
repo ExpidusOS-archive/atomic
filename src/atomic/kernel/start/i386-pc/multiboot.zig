@@ -220,7 +220,6 @@ fn initMem() std.mem.Allocator.Error!mem.Profile {
         .physical = kernel_stack_phy,
     });
 
-    // FIXME: why is it reporting 1016kB?
     return mem.Profile{
         .vaddr = .{
             .end = @as([*]u8, @ptrCast(&KERNEL_VADDR_END)),
