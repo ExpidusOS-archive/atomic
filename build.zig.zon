@@ -8,8 +8,8 @@
       .hash = "12204a76801751523988241376847a5dfd4ce1d06ce7b07666a47d02570327dc3c05",
     },
     .fio = .{
-      .url = "https://github.com/MidstallSoftware/fio/archive/20a0639b8f6abbc67990c00b0eb542dc87677126.tar.gz",
-      .hash = "1220a2f065bc54db6b847c6426a703e5d4c07f4f70d809d180c671f66eae3ea0c55e",
+      .url = "https://github.com/MidstallSoftware/fio/archive/cb424a1b8e4c84058c0eae8ba55612279d5f7fb7.tar.gz",
+      .hash = "1220ff0cac927ebbe0bbcbe8d92e35588624f409d745ec7a1df8601bae282c330ec2",
     },
   },
 }
