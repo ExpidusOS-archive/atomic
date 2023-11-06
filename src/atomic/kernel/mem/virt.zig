@@ -202,7 +202,7 @@ pub fn Manager(comptime Payload: type) type {
                     while (i < num) : (i += 1) {
                         const addr = phys.alloc() orelse unreachable;
                         try block_list.append(addr);
-                        self.mapper.mapFn(vaddr, vaddr + BLOCK_SIZE, addr, addr + BLOCK_SIZE, attrs, self.allocator, self.payload) catch |e| panic("Failed to map virtual memory: 0x{x}\n", .{e});
+                        self.mapper.mapFn(vaddr, vaddr + BLOCK_SIZE, addr, addr + BLOCK_SIZE, attrs, self.allocator, self.payload) catch |e| panic("Failed to map virtual memory: 0x{x}: {s}\n", .{ vaddr, @errorName(e) });
                         vaddr += BLOCK_SIZE;
                     }
                     _ = try self.allocations.put(vaddr_start, Allocation{ .physical = block_list });
@@ -274,12 +274,12 @@ pub fn Manager(comptime Payload: type) type {
                 const num_physical_allocations = physical.items.len;
                 for (physical.items, 0..) |block, i| {
                     try self.bmp.clearEntry(entry + i);
-                    phys.free(block) catch |e| panic(@errorReturnTrace(), "Failed to free PMM reserved memory at 0x{X}: {}\n", .{ block * BLOCK_SIZE, e });
+                    phys.free(block) catch |e| panic("Failed to free PMM reserved memory at 0x{X}: {}\n", .{ block * BLOCK_SIZE, e });
                 }
 
                 const region_start = vaddr;
                 const region_end = vaddr + (num_physical_allocations * BLOCK_SIZE);
-                self.mapper.unmapFn(region_start, region_end, self.allocator, self.payload) catch |e| panic(@errorReturnTrace(), "Failed to unmap VMM reserved memory from 0x{X} to 0x{X}: {}\n", .{ region_start, region_end, e });
+                self.mapper.unmapFn(region_start, region_end, self.allocator, self.payload) catch |e| panic("Failed to unmap VMM reserved memory from 0x{X} to 0x{X}: {}\n", .{ region_start, region_end, e });
                 assert(self.allocations.remove(vaddr));
             } else {
                 return Error.NotAllocated;

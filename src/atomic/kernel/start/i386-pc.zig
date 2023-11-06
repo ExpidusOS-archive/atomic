@@ -27,14 +27,18 @@ pub fn bootstrapStage2(memprofile: *const mem.Profile) void {
     mem.phys.init(memprofile, @constCast(&memprofile.fixed_allocator).allocator());
 
     const kernel_vmm = mem.virt.init(memprofile, @constCast(&memprofile.fixed_allocator).allocator()) catch |e| panic("Failed to initialize VMM: {s}", .{@errorName(e)});
-    _ = kernel_vmm;
 
     arch.paging.init(memprofile);
+
+    var heap_size = memprofile.mem_kb / 10 * 1024;
+    if (!std.math.isPowerOfTwo(heap_size)) heap_size = std.math.floorPowerOfTwo(usize, heap_size);
+
+    var kernel_heap = mem.heap.init(arch.VmmPayload, kernel_vmm, .{ .kernel = true, .writable = true, .cachable = true }, heap_size) catch |e| panic("Failed to initialize kernel heap: {s}", .{@errorName(e)});
 
     _ = console.writer().print("Memory: {} kB\n", .{memprofile.mem_kb}) catch unreachable;
 
     const pci = fio.pci.bus.x86.create(.{
-        .allocator = @constCast(&memprofile.fixed_allocator).allocator(),
+        .allocator = kernel_heap.allocator(),
     }) catch |e| panic("Failed to init PCI: {s}", .{@errorName(e)});
     defer pci.deinit();
 

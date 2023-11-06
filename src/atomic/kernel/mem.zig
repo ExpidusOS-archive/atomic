@@ -2,6 +2,7 @@ const std = @import("std");
 
 pub const virt = @import("mem/virt.zig");
 pub const phys = @import("mem/phys.zig");
+pub const heap = @import("mem/heap.zig");
 
 pub const Module = struct {
     region: Range,
