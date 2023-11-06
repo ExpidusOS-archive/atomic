@@ -1,0 +1,15 @@
+.{
+  .name = "atom",
+  .version = "0.1.0",
+  .paths = .{"."},
+  .dependencies = .{
+    .metaplus = .{
+      .url = "https://github.com/MidstallSoftware/meta-plus/archive/6e27c96293e13d774816df618926aed5e31cd21c.tar.gz",
+      .hash = "12204a76801751523988241376847a5dfd4ce1d06ce7b07666a47d02570327dc3c05",
+    },
+    .fio = .{
+      .url = "https://github.com/MidstallSoftware/fio/archive/d21d808805be3ef7f862eb1b2aaa94b5ac250510.tar.gz",
+      .hash = "12205d2b32af5e9fe9709eebe6845ab57e8a2fff992079c0e140efc981523181aa6b",
+    },
+  },
+}
