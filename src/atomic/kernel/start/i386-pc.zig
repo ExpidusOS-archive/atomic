@@ -24,6 +24,8 @@ pub fn bootstrapStage1() void {
 }
 
 pub fn bootstrapStage2(memprofile: *const mem.Profile) void {
+    arch.paging.init(memprofile);
+
     _ = console.writer().print("Memory: {} kB\n", .{memprofile.mem_kb}) catch unreachable;
 
     const pci = fio.pci.bus.x86.create(.{
