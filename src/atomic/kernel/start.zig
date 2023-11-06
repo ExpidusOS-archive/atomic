@@ -19,7 +19,7 @@ pub usingnamespace blk: {
     if (field) |f| {
         break :blk @field(starts, f);
     }
-    break :blk {};
+    break :blk struct {};
 };
 
 comptime {
