@@ -34,6 +34,7 @@ pub const Profile = struct {
     fixed_allocator: std.heap.FixedBufferAllocator,
 };
 
+pub var allocator: std.mem.Allocator = undefined;
 pub var fixed_buffer: [1024 * 1024]u8 = undefined;
 pub var fixed_buffer_allocator: std.heap.FixedBufferAllocator = std.heap.FixedBufferAllocator.init(fixed_buffer[0..]);
 pub var ADDR_OFFSET: usize = undefined;

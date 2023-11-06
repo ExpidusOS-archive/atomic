@@ -9,6 +9,8 @@ const console = arch.serial.Console{
     .baud = arch.serial.DEFAULT_BAUDRATE,
 };
 
+var kernel_heap: mem.heap.FreeListAllocator = undefined;
+
 pub fn bootstrapStage1() void {
     console.reset() catch unreachable;
 
@@ -33,7 +35,8 @@ pub fn bootstrapStage2(memprofile: *const mem.Profile) void {
     var heap_size = memprofile.mem_kb / 10 * 1024;
     if (!std.math.isPowerOfTwo(heap_size)) heap_size = std.math.floorPowerOfTwo(usize, heap_size);
 
-    var kernel_heap = mem.heap.init(arch.VmmPayload, kernel_vmm, .{ .kernel = true, .writable = true, .cachable = true }, heap_size) catch |e| panic("Failed to initialize kernel heap: {s}", .{@errorName(e)});
+    kernel_heap = mem.heap.init(arch.VmmPayload, kernel_vmm, .{ .kernel = true, .writable = true, .cachable = true }, heap_size) catch |e| panic("Failed to initialize kernel heap: {s}", .{@errorName(e)});
+    mem.allocator = kernel_heap.allocator();
 
     _ = console.writer().print("Memory: {} kB\n", .{memprofile.mem_kb}) catch unreachable;
 
