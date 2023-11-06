@@ -25,6 +25,10 @@ pub fn bootstrapStage1() void {
 
 pub fn bootstrapStage2(memprofile: *const mem.Profile) void {
     mem.phys.init(memprofile, @constCast(&memprofile.fixed_allocator).allocator());
+
+    const kernel_vmm = mem.virt.init(memprofile, @constCast(&memprofile.fixed_allocator).allocator()) catch |e| panic("Failed to initialize VMM: {s}", .{@errorName(e)});
+    _ = kernel_vmm;
+
     arch.paging.init(memprofile);
 
     _ = console.writer().print("Memory: {} kB\n", .{memprofile.mem_kb}) catch unreachable;
