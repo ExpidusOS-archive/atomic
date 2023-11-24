@@ -186,6 +186,19 @@ fn initMem() std.mem.Allocator.Error!mem.Profile {
         .physical = mb_physical,
     });
 
+    const tty_addr = mem.virtToPhys(arch.tty.getVideoBufferAddress());
+    const tty_region = mem.Range{
+        .start = tty_addr,
+        .end = tty_addr + 32 * 1024,
+    };
+    try reserved_virtual_mem.append(.{
+        .physical = tty_region,
+        .virtual = .{
+            .start = mem.physToVirt(tty_region.start),
+            .end = mem.physToVirt(tty_region.end),
+        },
+    });
+
     const boot_modules = @as([*]MultiBootModuleList, @ptrFromInt(mem.physToVirt(multiboot_info.mods_addr)))[0..mods_count];
     var modules = std.ArrayList(mem.Module).init(allocator);
     for (boot_modules) |module| {

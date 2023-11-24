@@ -22,6 +22,9 @@ pub fn bootstrapStage1() void {
     arch.irq.init();
 
     asm volatile ("cli");
+
+    arch.vga.init();
+    arch.tty.init();
 }
 
 pub fn bootstrapStage2(memprofile: *const mem.Profile) void {
@@ -38,5 +41,6 @@ pub fn bootstrapStage2(memprofile: *const mem.Profile) void {
     mem.allocator = kernel_heap.allocator();
 
     io.init();
+    io.bind(1, arch.tty.writer(), null) catch |e| panic("Failed to bind vga tty console to stdout: {s}", .{@errorName(e)});
     io.bind(2, console.writer(), null) catch |e| panic("Failed to bind serial console to stderr: {s}", .{@errorName(e)});
 }

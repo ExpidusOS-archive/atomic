@@ -9,6 +9,8 @@ pub const irq = @import("x86/irq.zig");
 pub const pic = @import("x86/pic.zig");
 pub const paging = @import("x86/paging.zig");
 pub const serial = @import("x86/serial.zig");
+pub const tty = @import("x86/tty.zig");
+pub const vga = @import("x86/vga.zig");
 
 pub const VmmPayload = *paging.Directory;
 pub const KERNEL_VMM_PAYLOAD = &paging.kernel_directory;
