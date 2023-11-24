@@ -58,32 +58,20 @@ pub const ExecutableOptions = struct {
     tasking: sdk.kconsts.Tasking,
 };
 
-pub fn addExecutable(b: *std.Build, options: ExecutableOptions) *std.Build.Step.Compile {
+fn applyExecutable(exe: *std.Build.Step.Compile, options: ExecutableOptions) void {
     const target = (if (options.device) |device| device.target else null) orelse options.target;
 
-    const atomic = addModule(b, .{
+    const atomic = addModule(exe.step.owner, .{
         .target = target,
         .optimize = options.optimize,
         .device = options.device,
         .tasking = options.tasking,
     });
 
-    const exe = b.addExecutable(.{
-        .name = options.name,
-        .root_source_file = .{
-            .path = b.pathFromRoot("src/atomic/root.zig"),
-        },
-        .version = options.version,
-        .target = target,
-        .optimize = options.optimize,
-        .single_threaded = options.tasking == .none,
-        .linkage = options.linkage,
-    });
-
     exe.addModule("atomic", atomic);
 
     if (options.root_source_file) |root_source_file| {
-        const deps = b.allocator.alloc(std.Build.ModuleDependency, options.dependencies.len + 1) catch @panic("OOM");
+        const deps = exe.step.owner.allocator.alloc(std.Build.ModuleDependency, options.dependencies.len + 1) catch @panic("OOM");
 
         for (options.dependencies, 0..) |dep, i| deps[i] = dep;
         deps[options.dependencies.len] = .{
@@ -98,6 +86,62 @@ pub fn addExecutable(b: *std.Build, options: ExecutableOptions) *std.Build.Step.
     }
 
     sdk.applyDevice(exe, options.device);
+}
+
+pub fn addExecutable(b: *std.Build, options: ExecutableOptions) *std.Build.Step.Compile {
+    const target = (if (options.device) |device| device.target else null) orelse options.target;
+
+    const exe = b.addExecutable(.{
+        .name = options.name,
+        .root_source_file = .{
+            .path = b.pathFromRoot("src/root.zig"),
+        },
+        .version = options.version,
+        .target = target,
+        .optimize = options.optimize,
+        .single_threaded = options.tasking == .none,
+        .linkage = options.linkage,
+    });
+
+    applyExecutable(exe, options);
+    return exe;
+}
+
+pub const TestOptions = struct {
+    name: []const u8 = "test",
+    root_source_file: std.Build.LazyPath,
+    version: ?std.SemanticVersion = null,
+    dependencies: []const std.Build.ModuleDependency = &.{},
+    target: std.zig.CrossTarget,
+    optimize: std.builtin.OptimizeMode,
+    device: ?sdk.Device,
+    tasking: sdk.kconsts.Tasking,
+};
+
+pub fn addTest(b: *std.Build, options: TestOptions) *std.Build.Step.Compile {
+    const target = (if (options.device) |device| device.target else null) orelse options.target;
+
+    const exe = b.addTest(.{
+        .name = options.name,
+        .root_source_file = options.root_source_file,
+        .version = options.version,
+        .target = target,
+        .optimize = options.optimize,
+        .single_threaded = options.tasking == .none,
+        .test_runner = b.pathFromRoot("src/test_runner.zig"),
+    });
+
+    applyExecutable(exe, .{
+        .name = options.name,
+        .root_source_file = options.root_source_file,
+        .version = options.version,
+        .dependencies = options.dependencies,
+        .target = target,
+        .optimize = options.optimize,
+        .linkage = exe.linkage,
+        .device = options.device,
+        .tasking = options.tasking,
+    });
     return exe;
 }
 
@@ -118,4 +162,15 @@ pub fn build(b: *std.Build) !void {
         .device = device,
     });
     b.installArtifact(exe_example);
+
+    const exe_test = addTest(b, .{
+        .root_source_file = .{
+            .path = b.pathFromRoot("src/tests.zig"),
+        },
+        .target = target,
+        .optimize = optimize,
+        .tasking = tasking,
+        .device = device,
+    });
+    b.installArtifact(exe_test);
 }

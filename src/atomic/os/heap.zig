@@ -23,5 +23,7 @@ pub const page_allocator = std.mem.Allocator{
     .ptr = undefined,
     .vtable = &.{
         .alloc = alloc,
+        .resize = resize,
+        .free = free,
     },
 };

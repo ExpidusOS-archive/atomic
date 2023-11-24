@@ -1,5 +1,6 @@
 const arch = @import("../arch.zig");
 const mem = @import("../mem.zig");
+const io = @import("../io.zig");
 const panic = @import("../panic.zig").panic;
 const std = @import("std");
 const fio = @import("fio");
@@ -22,10 +23,10 @@ pub fn bootstrapStage1() void {
 
     asm volatile ("cli");
 
-    _ = console.writer().print("Hello, world!\n", .{}) catch unreachable;
+    console.reset() catch unreachable;
 }
 
-pub fn bootstrapStage2(memprofile: *const mem.Profile) void {
+pub fn bootstrapStage2(memprofile: *const mem.Profile) noreturn {
     mem.phys.init(memprofile, @constCast(&memprofile.fixed_allocator).allocator());
 
     const kernel_vmm = mem.virt.init(memprofile, @constCast(&memprofile.fixed_allocator).allocator()) catch |e| panic("Failed to initialize VMM: {s}", .{@errorName(e)});
@@ -38,17 +39,9 @@ pub fn bootstrapStage2(memprofile: *const mem.Profile) void {
     kernel_heap = mem.heap.init(arch.VmmPayload, kernel_vmm, .{ .kernel = true, .writable = true, .cachable = true }, heap_size) catch |e| panic("Failed to initialize kernel heap: {s}", .{@errorName(e)});
     mem.allocator = kernel_heap.allocator();
 
-    _ = console.writer().print("Memory: {} kB\n", .{memprofile.mem_kb}) catch unreachable;
+    io.init();
+    io.bind(2, console.writer()) catch |e| panic("Failed to bind serial console to stderr: {s}", .{@errorName(e)});
 
-    const pci = fio.pci.bus.x86.create(.{
-        .allocator = kernel_heap.allocator(),
-    }) catch |e| panic("Failed to init PCI: {s}", .{@errorName(e)});
-    defer pci.deinit();
-
-    const devices = pci.enumerate() catch |e| panic("Failed to enumerate PCI: {s}", .{@errorName(e)});
-    defer devices.deinit();
-
-    for (devices.items) |dev| {
-        _ = console.writer().print("{}\n", .{dev}) catch |e| panic("Failed to print: {s}", .{@errorName(e)});
-    }
+    @import("root").main() catch |e| panic("root.main has failed: {s}", .{@errorName(e)});
+    unreachable;
 }

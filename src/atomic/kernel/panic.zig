@@ -12,5 +12,5 @@ pub fn panic(comptime fmt: []const u8, args: anytype) noreturn {
         _ = console.write("\n") catch 0;
     }
 
-    while (true) {}
+    @trap();
 }

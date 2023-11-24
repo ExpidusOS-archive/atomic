@@ -255,5 +255,4 @@ export fn _start_higher() noreturn {
     multiboot_info = @ptrFromInt(mb_info_addr);
     @import("../i386-pc.zig").bootstrapStage1();
     @import("../i386-pc.zig").bootstrapStage2(&(initMem() catch |e| panic("Failed to initialize memory info: {}", .{e})));
-    while (true) {}
 }
