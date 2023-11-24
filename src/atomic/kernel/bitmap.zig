@@ -120,7 +120,7 @@ pub fn Bitmap(comptime EntryCount: ?usize, comptime T: type) type {
                 i += 1;
                 bit = 0;
             }) {
-                var bmp = self.bitmaps[i];
+                const bmp = self.bitmaps[i];
 
                 while (true) {
                     const entry = bit + i * EntryPerMap;

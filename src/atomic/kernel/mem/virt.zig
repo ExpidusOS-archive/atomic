@@ -62,7 +62,7 @@ pub fn Manager(comptime Payload: type) type {
 
         pub fn init(start: usize, end: usize, allocator: Allocator, mapper: Mapper(Payload), payload: Payload) Allocator.Error!Self {
             const size = end - start;
-            var bmp = try Bitmap(null, usize).init(std.mem.alignForward(usize, size, phys.BLOCK_SIZE) / phys.BLOCK_SIZE, allocator);
+            const bmp = try Bitmap(null, usize).init(std.mem.alignForward(usize, size, phys.BLOCK_SIZE) / phys.BLOCK_SIZE, allocator);
             return Self{
                 .bmp = bmp,
                 .start = start,
@@ -254,7 +254,7 @@ pub fn Manager(comptime Payload: type) type {
                     };
                 }
                 const align_offset = address - start_addr;
-                var data_copy = @as([*]u8, @ptrFromInt(v_start + align_offset))[0..data.len];
+                const data_copy = @as([*]u8, @ptrFromInt(v_start + align_offset))[0..data.len];
                 if (from) {
                     std.mem.copy(u8, data_copy, data);
                 } else {

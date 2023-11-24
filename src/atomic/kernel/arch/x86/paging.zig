@@ -57,16 +57,16 @@ const TENTRY_AVAILABLE: u32 = 0xE00;
 const TENTRY_PAGE_ADDR: u32 = 0xFFFFF000;
 
 fn pageFault(state: *cpu.State) u32 {
-    var cr0 = asm volatile ("mov %%cr0, %[cr0]"
+    const cr0 = asm volatile ("mov %%cr0, %[cr0]"
         : [cr0] "=r" (-> u32),
     );
-    var cr2 = asm volatile ("mov %%cr2, %[cr2]"
+    const cr2 = asm volatile ("mov %%cr2, %[cr2]"
         : [cr2] "=r" (-> u32),
     );
-    var cr3 = asm volatile ("mov %%cr3, %[cr3]"
+    const cr3 = asm volatile ("mov %%cr3, %[cr3]"
         : [cr3] "=r" (-> u32),
     );
-    var cr4 = asm volatile ("mov %%cr4, %[cr4]"
+    const cr4 = asm volatile ("mov %%cr4, %[cr4]"
         : [cr4] "=r" (-> u32),
     );
 
@@ -140,7 +140,7 @@ fn unmapDirEntry(dir: *Directory, virt_start: usize, virt_end: usize, _: Allocat
     const table = dir.tables[entry] orelse return mem.virt.MapperError.NotMapped;
     var addr = virt_start;
     while (addr < virt_end) : (addr += PAGE_SIZE_4KB) {
-        var table_entry = &table.entries[virtToTableEntryIdx(addr)];
+        const table_entry = &table.entries[virtToTableEntryIdx(addr)];
         if (table_entry.* & TENTRY_PRESENT != 0) {
             clearAttribute(table_entry, TENTRY_PRESENT);
             if (dir == &kernel_directory) {
@@ -174,7 +174,7 @@ fn mapDirEntry(dir: *Directory, virt_start: usize, virt_end: usize, phys_start: 
     }
 
     const entry = virtToDirEntryIdx(virt_start);
-    var dir_entry = &dir.entries[entry];
+    const dir_entry = &dir.entries[entry];
 
     var table: *Table = undefined;
     if (dir.tables[entry]) |tbl| {

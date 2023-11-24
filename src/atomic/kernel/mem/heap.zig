@@ -40,7 +40,7 @@ pub const FreeListAllocator = struct {
     }
 
     fn insertFreeHeader(at: usize, size: usize, next_free: ?*Header) *Header {
-        var node: *Header = @ptrFromInt(at);
+        const node: *Header = @ptrFromInt(at);
         node.* = Header.init(size, next_free);
         return node;
     }
@@ -134,7 +134,7 @@ pub const FreeListAllocator = struct {
             }
             return false;
         } else {
-            var size_diff = old_mem.len - real_size;
+            const size_diff = old_mem.len - real_size;
             if (size_diff < @sizeOf(Header)) {
                 return true;
             }
@@ -207,7 +207,7 @@ pub const FreeListAllocator = struct {
 
         if (alloc_to) |x| {
             var header = x;
-            var addr: usize = @intFromPtr(header);
+            const addr: usize = @intFromPtr(header);
             var alignment_padding: usize = 0;
             if (alignment > 1 and !std.mem.isAligned(addr, alignment)) {
                 alignment_padding = alignment - (addr % alignment);
@@ -223,7 +223,7 @@ pub const FreeListAllocator = struct {
             if (alignment_padding >= @sizeOf(Header)) {
                 header = insertFreeHeader(addr + alignment_padding, header.size - alignment_padding, header.next_free);
 
-                var left = insertFreeHeader(addr, alignment_padding - @sizeOf(Header), header.next_free);
+                const left = insertFreeHeader(addr, alignment_padding - @sizeOf(Header), header.next_free);
                 self.registerFreeHeader(prev, left);
                 prev = left;
                 alignment_padding = 0;
@@ -242,7 +242,7 @@ pub const FreeListAllocator = struct {
 };
 
 pub fn init(comptime Payload: type, heap_vmm: *virt.Manager(Payload), attribs: virt.Attributes, heap_size: usize) (FreeListAllocator.Error || Allocator.Error)!FreeListAllocator {
-    var heap_start = (try heap_vmm.alloc(heap_size / virt.BLOCK_SIZE, null, attribs)) orelse panic("Out of memory, failed to allocate kernel heap", .{});
+    const heap_start = (try heap_vmm.alloc(heap_size / virt.BLOCK_SIZE, null, attribs)) orelse panic("Out of memory, failed to allocate kernel heap", .{});
     errdefer heap_vmm.free(heap_start) catch unreachable;
     return try FreeListAllocator.init(heap_start, heap_size);
 }
