@@ -13,6 +13,8 @@ pub fn panic(msg: []const u8, error_return_trace: ?*std.builtin.StackTrace, n: ?
     atomic.kernel.panic("{s}", .{msg});
 }
 
+pub const os = atomic.os;
+
 pub fn main() !void {
     return root.main();
 }
