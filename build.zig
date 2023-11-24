@@ -71,12 +71,18 @@ fn applyExecutable(exe: *std.Build.Step.Compile, options: ExecutableOptions) voi
     exe.addModule("atomic", atomic);
 
     if (options.root_source_file) |root_source_file| {
-        const deps = exe.step.owner.allocator.alloc(std.Build.ModuleDependency, options.dependencies.len + 1) catch @panic("OOM");
+        const deps = exe.step.owner.allocator.alloc(std.Build.ModuleDependency, options.dependencies.len + 2) catch @panic("OOM");
 
         for (options.dependencies, 0..) |dep, i| deps[i] = dep;
+
         deps[options.dependencies.len] = .{
             .name = "atomic",
             .module = atomic,
+        };
+
+        deps[options.dependencies.len + 1] = .{
+            .name = "fio",
+            .module = atomic.dependencies.get("fio").?,
         };
 
         exe.addAnonymousModule("atomic-root", .{

@@ -38,5 +38,5 @@ pub fn bootstrapStage2(memprofile: *const mem.Profile) void {
     mem.allocator = kernel_heap.allocator();
 
     io.init();
-    io.bind(2, console.writer()) catch |e| panic("Failed to bind serial console to stderr: {s}", .{@errorName(e)});
+    io.bind(2, console.writer(), null) catch |e| panic("Failed to bind serial console to stderr: {s}", .{@errorName(e)});
 }

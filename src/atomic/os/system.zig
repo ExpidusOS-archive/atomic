@@ -33,6 +33,10 @@ pub fn write(fd: fd_t, buf: [*]const u8, count: usize) usize {
     return io.write(fd, buf[0..count]);
 }
 
+pub fn read(fd: fd_t, buf: [*]u8, count: usize) usize {
+    return io.read(fd, buf[0..count]);
+}
+
 pub fn getErrno(r: usize) E {
     const signed_r = @as(isize, @bitCast(r));
     const int = if (signed_r > -4096 and signed_r < 0) -signed_r else 0;
@@ -40,5 +44,9 @@ pub fn getErrno(r: usize) E {
 }
 
 pub fn close(_: fd_t) usize {
-    return @intFromEnum(E.INVAL);
+    return err(.INVAL);
+}
+
+pub fn err(e: E) usize {
+    return @bitCast(@as(isize, @intFromEnum(e)) * -1);
 }

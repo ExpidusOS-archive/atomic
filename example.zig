@@ -1,7 +1,22 @@
 const std = @import("std");
-const atomic = @import("atomic");
+const fio = @import("fio");
 
 pub fn main() !void {
-    try std.io.getStdErr().writer().print("Hello, world\n{}\n", .{std.debug.getStderrMutex()});
+    const stderr = std.io.getStdErr().writer();
+
+    try stderr.print("Hello, world\n", .{});
+
+    const pci = try fio.pci.bus.x86.create(.{
+        .allocator = std.heap.page_allocator,
+    });
+    defer pci.deinit();
+
+    const devices = try pci.enumerate();
+    defer devices.deinit();
+
+    for (devices.items) |dev| {
+        try stderr.print("{}\n", .{dev});
+    }
+
     while (true) {}
 }
