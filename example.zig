@@ -2,9 +2,9 @@ const std = @import("std");
 const fio = @import("fio");
 
 pub fn main() !void {
-    const stderr = std.io.getStdErr().writer();
+    const stderr = std.io.getStdErr();
 
-    try stderr.print("Hello, world\n", .{});
+    try stderr.writer().print("Hello, world\n", .{});
 
     const pci = try fio.pci.bus.x86.create(.{
         .allocator = std.heap.page_allocator,
@@ -15,7 +15,7 @@ pub fn main() !void {
     defer devices.deinit();
 
     for (devices.items) |dev| {
-        try stderr.print("{}\n", .{dev});
+        try stderr.writer().print("{}\n", .{dev});
     }
 
     while (true) {}
