@@ -1,6 +1,6 @@
 const std = @import("std");
 const mem = @import("mem.zig");
-const fd_t = usize;
+const fd_t = @import("../os/system.zig").fd_t;
 
 const Entry = struct {
     ptr: *anyopaque,

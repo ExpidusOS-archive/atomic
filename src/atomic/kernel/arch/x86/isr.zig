@@ -2,7 +2,7 @@ const std = @import("std");
 const Idt = @import("idt.zig");
 const cpu = @import("cpu.zig");
 const interrupts = @import("interrupts.zig");
-const panic = @import("../../panic.zig").panic;
+const panicAt = @import("../../panic.zig").panicAt;
 
 pub const Handler = *const fn (*cpu.State) usize;
 var handlers: [32]?Handler = [_]?Handler{null} ** 32;
@@ -50,10 +50,10 @@ export fn isrHandler(state: *cpu.State) usize {
         if (handlers[isr]) |handler| {
             ret_esp = handler(state);
         } else {
-            panic("Invalid ISR {} ({s}): the interrupt was triggered but not handled.\nCPU State: {}", .{ isr, exception_msg[isr], state });
+            panicAt(state.eip, "Invalid ISR {} ({s}): the interrupt was triggered but not handled.\nCPU State: {}", .{ isr, exception_msg[isr], state });
         }
     } else {
-        panic("Invalid ISR {}: entry is not within range", .{isr});
+        panicAt(state.eip, "Invalid ISR {}: entry is not within range", .{isr});
     }
     return ret_esp;
 }
